@@ -43,9 +43,7 @@ public class MyHashMap<K, V> implements Map<K, V> {
 
     private int size;
     private Node[] array = new Node[16];
-
-
-
+    
     @Override
     public int size() {
         return size;
@@ -180,10 +178,10 @@ public class MyHashMap<K, V> implements Map<K, V> {
 
     @Override
     public void putAll(Map<? extends K, ? extends V> m) {
-//        Set<Map<? extends K, ? extends V>> entrySet = m.entrySet();
-//        for (Entry<? extends K, ? extends V> entry : entrySet) {
-//            put(entry.getKey(), entry.getValue());
-//        }
+        Set<? extends Map.Entry<? extends K, ? extends V>> entrySet = m.entrySet();
+        for(Map.Entry<? extends K, ? extends V> entry : entrySet) {
+            put(entry.getKey(), entry.getValue());
+        }
     }
 
     @Override
@@ -224,20 +222,19 @@ public class MyHashMap<K, V> implements Map<K, V> {
 
     @Override
     public Set<Map.Entry<K, V>> entrySet() {
-//        Set<Map.Entry<K, V>> out = new HashSet<>();
-//        for (Node node : array) {
-//            if (node != null) {
-//                out.add(new Entry<K, V>((K)node.key, (V)node.value));
-//            }
-//            while (node.next != null) {
-//                node = node.next;
-//                out.add(new Entry<K, V>((K)node.key, (V)node.value));
-//            }
-//        }
-//        return out;
-        return null;
-    }
+        Set<Map.Entry<K, V>> out = new HashSet<>();
+        for (Node node : array) {
+            if (node != null) {
+                out.add(new MyHashMap.Entry((K)node.key, (V)node.value));
 
+                while (node.next != null) {
+                    node = node.next;
+                    out.add(new MyHashMap.Entry((K)node.key, (V)node.value));
+                }
+            }
+        }
+        return out;
+    }
 
     private int getIndex(Object key) {
        return Math.abs(key.hashCode() % array.length);
