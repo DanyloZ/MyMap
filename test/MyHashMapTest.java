@@ -25,9 +25,17 @@ public class MyHashMapTest {
         map.put(2, "b");
         assertEquals("a", map.get(1));
         assertEquals("b", map.get(2));
+        assertEquals(2, map.size());
         map.put(1, "1");
+        assertEquals(2, map.size());
         assertEquals("1", map.get(1));
         assertEquals(null, map.get(3));
+        map.put(null, "null");
+        assertEquals(3, map.size());
+        assertEquals("null", map.get(null));
+        map.put(null, "0");
+        assertEquals(3, map.size());
+        assertEquals("0", map.get(null));
     }
 
     @Test
@@ -40,6 +48,9 @@ public class MyHashMapTest {
         assertTrue(map.containsKey(2));
         assertTrue(map.containsKey(56));
         assertFalse(map.containsKey(4));
+        assertFalse(map.containsKey(null));
+        map.put(null, "0");
+        assertTrue(map.containsKey(null));
     }
 
     @Test
@@ -48,10 +59,12 @@ public class MyHashMapTest {
         map.put(10, "a");
         map.put(23, "b");
         map.put(56, "c");
+        map.put(126, null);
         assertTrue(map.containsValue("a"));
         assertTrue(map.containsValue("b"));
         assertTrue(map.containsValue("c"));
         assertFalse(map.containsValue("d"));
+        assertTrue(map.containsValue(null));
     }
 
     @Test
@@ -63,11 +76,13 @@ public class MyHashMapTest {
         assertTrue(map.containsKey(35));
         assertEquals("15a", map.get(15));
         assertEquals("35a", map.get(35));
+        assertEquals(36, map.size());
     }
 
     @Test
     public void testRemove() {
         MyHashMap<Integer, String> map = new MyHashMap<>();
+        map.put(0, "0");
         map.put(1, "a");
         map.put(2, "b");
         map.put(3, "c");
@@ -77,9 +92,12 @@ public class MyHashMapTest {
         map.put(18, "18");
         map.put(33, "33");
         map.put(34, "34");
+        map.put(null, "35");
+        assertEquals(11, map.size());
         assertEquals("a", map.remove(1));
         assertEquals("b", map.remove(2));
         assertEquals("c", map.remove(3));
+        assertEquals("35", map.remove(null));
         assertTrue(map.containsKey(17));
         assertTrue(map.containsKey(18));
         assertTrue(map.containsKey(33));
@@ -87,8 +105,10 @@ public class MyHashMapTest {
         assertFalse(map.containsKey(1));
         assertFalse(map.containsKey(2));
         assertFalse(map.containsKey(3));
+        assertEquals(7, map.size());
         assertEquals(null, map.remove(20));
-        assertEquals(6, map.size());
+        assertEquals(null, map.remove(null));
+        assertEquals(7, map.size());
     }
 
     @Test
@@ -125,8 +145,9 @@ public class MyHashMapTest {
         map.put(18, "18");
         map.put(33, "33");
         map.put(34, "34");
+        map.put(null, "0");
         Set<Integer> set = map.keySet();
-        assertEquals(9, set.size());
+        assertEquals(10, set.size());
         assertTrue(set.contains(1));
         assertTrue(set.contains(2));
         assertTrue(set.contains(3));
@@ -136,6 +157,7 @@ public class MyHashMapTest {
         assertTrue(set.contains(18));
         assertTrue(set.contains(33));
         assertTrue(set.contains(34));
+        assertTrue(set.contains(null));
         assertFalse(set.contains(4));
         assertFalse(set.contains(35));
     }
@@ -152,8 +174,9 @@ public class MyHashMapTest {
         map.put(18, "a");
         map.put(33, "33");
         map.put(34, "b");
+        map.put(null, null);
         Collection<String> list = map.values();
-        assertEquals(9, list.size());
+        assertEquals(10, list.size());
         assertTrue(list.contains("a"));
         assertTrue(list.contains("b"));
         assertTrue(list.contains("c"));
@@ -163,6 +186,7 @@ public class MyHashMapTest {
         assertTrue(list.contains("a"));
         assertTrue(list.contains("33"));
         assertTrue(list.contains("b"));
+        assertTrue(list.contains(null));
         assertFalse(list.contains("4"));
         assertFalse(list.contains("35"));
     }

@@ -4,21 +4,11 @@ package com.danylo.myMap.myHashMap;
 import java.util.*;
 
 public class MyHashMap<K, V> implements Map<K, V> {
-    private static class Node {
-        Object key;
-        Object value;
-        Node next;
-        Node(Object key, Object value) {
-            this.key = key;
-            this.value = value;
-        }
-    }
-
-    private class Entry<K, V> implements Map.Entry<K, V>{
-
+    private static class Node<K,V> implements Map.Entry<K,V> {
         K key;
         V value;
-        Entry(K key, V value) {
+        Node<K, V> next;
+        Node(K key, V value) {
             this.key = key;
             this.value = value;
         }
@@ -42,8 +32,8 @@ public class MyHashMap<K, V> implements Map<K, V> {
     }
 
     private int size;
-    private Node[] array = new Node[16];
-    
+    private Node<K, V>[] array = new Node[16];
+
     @Override
     public int size() {
         return size;
@@ -56,18 +46,15 @@ public class MyHashMap<K, V> implements Map<K, V> {
 
     @Override
     public boolean containsKey(Object key) {
+        if (key == null) {
+            return array[0] != null && array[0].key == null;
+        }
         int index = getIndex(key);
         Node node = array[index];
         if (node != null) {
-            while (true) {
+            for (; node != null; node = node.next) {
                 if (node.key.equals(key)) {
                     return true;
-                }
-                else if (node.next != null) {
-                    node = node.next;
-                }
-                else {
-                    break;
                 }
             }
         }
@@ -76,18 +63,20 @@ public class MyHashMap<K, V> implements Map<K, V> {
 
     @Override
     public boolean containsValue(Object value) {
-        for (Node node : array) {
+        for (Node<K, V> node : array) {
             if (node != null) {
-                while (true) {
-                    if (node.value.equals(value)) {
-                        return true;
-                    }
-                    else if (node.next != null) {
-                        node = node.next;
+                for(; node != null; node = node.next) {
+                    if (value != null) {
+                        if (value.equals(node.value)) {
+                            return true;
+                        }
                     }
                     else {
-                        break;
+                        if (node.value == null) {
+                            return true;
+                        }
                     }
+
                 }
             }
         }
@@ -96,19 +85,16 @@ public class MyHashMap<K, V> implements Map<K, V> {
 
     @Override
     public V get(Object key) {
+        if (key == null) {
+            return getNull();
+        }
         int index = getIndex(key);
         V out = null;
         if (array[index] != null) {
-            Node node = array[index];
-            while (true) {
+            Node<K, V> node = array[index];
+            for(; node != null; node = node.next) {
                 if (node.key.equals(key)) {
-                    out = (V)node.value;
-                    break;
-                }
-                else if (node.next != null) {
-                    node = node.next;
-                }
-                else {
+                    out = node.value;
                     break;
                 }
             }
@@ -118,26 +104,27 @@ public class MyHashMap<K, V> implements Map<K, V> {
 
     @Override
     public V put(K key, V value) {
-        enlarge();
+        if (size == array.length * 2) {
+            enlarge();
+        }
+        if (key == null) {
+            return putNull(value);
+        }
         V out = value;
         int index = getIndex(key);
         if (array[index] == null) {
-            array[index] = new Node(key, value);
+            array[index] = new Node<K, V>(key, value);
             size++;
         }
         else {
-            Node node = array[index];
-            while (true) {
-                if (node.key.equals(key)) {
-                    out = (V)node.value;
+            for (Node <K, V> node = array[index]; node != null; node = node.next) {
+                if (key.equals(node.key)) {
+                    out = node.value;
                     node.value = value;
                     break;
                 }
-                else if (node.next != null) {
-                    node = node.next;
-                }
-                else {
-                    node.next = new Node(key, value);
+                else if (node.next == null){
+                    node.next = new Node<K, V>(key, value);
                     size++;
                     break;
                 }
@@ -148,13 +135,15 @@ public class MyHashMap<K, V> implements Map<K, V> {
 
     @Override
     public V remove(Object key) {
+        if (key == null) {
+            return removeNull();
+        }
         int index = getIndex(key);
-        Node node = array[index];
+        Node<K, V> node = array[index];
         V out = null;
         if (node != null) {
             if (node.key.equals(key)) {
-                out = (V)node.value;
-                Node temp = node.next;
+                out = node.value;
                 array[index] = node.next ;
                 size--;
             }
@@ -162,8 +151,8 @@ public class MyHashMap<K, V> implements Map<K, V> {
                 while (node.next != null) {
                     Node prev = node;
                     node = node.next;
-                    if (node.key.equals(key)) {
-                        out = (V)node.value;
+                    if (key.equals(node.key)) {
+                        out = node.value;
                         node.key = null;
                         node.value = null;
                         prev.next = node.next;
@@ -186,20 +175,18 @@ public class MyHashMap<K, V> implements Map<K, V> {
 
     @Override
     public void clear() {
-        array = new Node[16];
+        for (int i = 0; i < array.length; i++) {
+            array[i] = null;
+        }
         size = 0;
     }
 
     @Override
     public Set<K> keySet() {
         Set<K> out = new HashSet<>();
-        for (Node node : array) {
-            if (node != null) {
-                out.add((K)node.key);
-                while (node.next != null) {
-                    node = node.next;
-                    out.add((K)node.key);
-                }
+        for (Node<K, V> node : array) {
+            for (; node != null; node = node.next) {
+                out.add(node.key);
             }
         }
         return out;
@@ -208,13 +195,9 @@ public class MyHashMap<K, V> implements Map<K, V> {
     @Override
     public Collection<V> values() {
         ArrayList<V> out = new ArrayList<V>();
-        for (Node node : array) {
-            if (node != null) {
-                out.add((V)node.value);
-                while (node.next != null) {
-                    node = node.next;
-                    out.add((V)node.value);
-                }
+        for (Node<K, V> node : array) {
+            for (; node != null; node = node.next) {
+                out.add(node.value);
             }
         }
         return out;
@@ -223,14 +206,9 @@ public class MyHashMap<K, V> implements Map<K, V> {
     @Override
     public Set<Map.Entry<K, V>> entrySet() {
         Set<Map.Entry<K, V>> out = new HashSet<>();
-        for (Node node : array) {
-            if (node != null) {
-                out.add(new MyHashMap.Entry((K)node.key, (V)node.value));
-
-                while (node.next != null) {
-                    node = node.next;
-                    out.add(new MyHashMap.Entry((K)node.key, (V)node.value));
-                }
+        for (Node<K, V> node : array) {
+            for (; node != null; node = node.next) {
+                out.add(new Node<K, V>(node.key, node.value));
             }
         }
         return out;
@@ -241,35 +219,75 @@ public class MyHashMap<K, V> implements Map<K, V> {
     }
 
     private void enlarge() {
-        if (size == array.length * 2) {
-            Node[] newArray = new Node[array.length * 2];
-            for (int i = 0; i < array.length; i++) {
-                Node node = array[i];
-                if (node != null) {
-                    while (true) {
-                        int index = Math.abs(node.key.hashCode() % newArray.length);
-                        Node newNode = new Node(node.key, node.value);
-                        if (newArray[index] == null) {
-                            newArray[index] = newNode;
+        Node<K, V>[] newArray = new Node[array.length * 2];
+        for (int i = 0; i < array.length; i++) {
+            Node<K, V> node = array[i];
+            if (node != null) {
+                while (true) {
+                    int index = Math.abs(node.key.hashCode() % newArray.length);
+                    Node<K, V> newNode = new Node<K, V>(node.key, node.value);
+                    if (newArray[index] == null) {
+                        newArray[index] = newNode;
+                    } else {
+                        Node nextNode = newArray[index];
+                        while (nextNode.next != null) {
+                            nextNode = nextNode.next;
                         }
-                        else {
-                            Node nextNode = newArray[index];
-                            while(nextNode.next != null) {
-                                nextNode = nextNode.next;
-                            }
-                            nextNode.next = newNode;
-                        }
-                        if (node.next != null) {
-                            node = node.next;
-                        }
-                        else {
-                            array[i] = null;
-                            break;
-                        }
+                        nextNode.next = newNode;
+                    }
+                    if (node.next != null) {
+                        node = node.next;
+                    } else {
+                        array[i] = null;
+                        break;
                     }
                 }
             }
-            array = newArray;
         }
+        array = newArray;
     }
+
+    private V putNull(V value) {
+        Node<K, V> nullNode = new Node<K, V>(null, value);
+        V out = value;
+        if (array[0] == null) {
+            array[0] = nullNode;
+            size++;
+        }
+        else {
+            Node<K, V> node = array[0];
+            if (node.key == null) {
+                out = node.value;
+                node.value = value;
+            }
+            else {
+                nullNode.next = node;
+                array[0] = nullNode;
+                size++;
+            }
+        }
+        return out;
+    }
+
+    private V getNull() {
+        V out = null;
+        if (array[0] != null && array[0].key == null) {
+            out = array[0].value;
+        }
+        return out;
+    }
+
+    private V removeNull() {
+        Node<K, V> node = array[0];
+        V out = null;
+        if (node != null) {
+            if (node.key == null) {
+                out = node.value;
+                array[0] = node.next;
+                size--;
+            }
+        }
+        return out;
+    }
+
 }
